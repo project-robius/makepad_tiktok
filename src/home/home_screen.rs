@@ -7,17 +7,7 @@ live_design! {
 
     import crate::shared::styles::*;
     import crate::home::header::*;
-
-    VideoReel = <View> {
-        width: Fill,
-        height: Fill,
-        
-        <Image> {
-            source: dep("crate://self/resources/video_preview_1.png")
-            width: Fill,
-            height: Fill,
-        }
-    }
+    import crate::home::video_reel::*;
 
     HomeScreen = <View> {
         width: Fill,
