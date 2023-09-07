@@ -5,6 +5,7 @@ live_design! {
     import makepad_widgets::theme_desktop_dark::*;
 
     import crate::shared::styles::*
+    import crate::home::home_screen::*
 
     AppTab = <RadioButton> {
         height: Fill
@@ -66,26 +67,32 @@ live_design! {
                 margin: 0
                 padding: 0
 
-                tab1_frame = <View> {
-                    visible: true
-                    <Label> {text: "Hello World"}
-                }
+                tab1_frame = <HomeScreen> {visible: true}
                 tab2_frame = <View> {visible: false}
                 tab3_frame = <View> {visible: false}
                 tab4_frame = <View> {visible: false}
                 tab5_frame = <View> {visible: false}
             }
 
-            mobile_menu = <RoundedView> {
+            horizontal_divider = <View> {
+                width: Fill,
+                height: 5,
+                margin: 0.0,
+                padding: 0.0, spacing: 0.0
+                show_bg: true
+                draw_bg: {
+                    color: (COLOR_DIVIDER)
+                }
+            }
+
+            mobile_menu = <View> {
                 width: Fill
                 height: 80
-                padding: 10
+                padding: {top: 10, bottom: 40, left: 10, right: 10}
                 flow: Right
                 spacing: 6.0
+                show_bg: true
                 draw_bg: {
-                    instance radius: 0.0,
-                    instance border_width: 1.0,
-                    instance border_color: #aaa,
                     color: (BACKGROUND_COLOR)
                 }
 
@@ -151,6 +158,8 @@ impl LiveHook for App {
     fn before_live_design(cx: &mut Cx) {
         makepad_widgets::live_design(cx);
         crate::shared::styles::live_design(cx);
+        crate::home::home_screen::live_design(cx);
+        crate::home::header::live_design(cx);
     }
 }
 

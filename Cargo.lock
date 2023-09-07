@@ -134,6 +134,7 @@ dependencies = [
  "makepad-shader-compiler",
  "makepad-wasm-bridge",
  "windows",
+ "windows-core",
 ]
 
 [[package]]

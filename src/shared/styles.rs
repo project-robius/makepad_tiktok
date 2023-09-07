@@ -17,6 +17,7 @@ live_design! {
     }
 
     BACKGROUND_COLOR = #111
+    COLOR_DIVIDER = #ddd
     SELECTED_ITEM_COLOR = #fff
     UNSELECTED_ITEM_COLOR= #888
 }
