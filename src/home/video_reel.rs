@@ -58,8 +58,8 @@ live_design! {
                     apply: {offset: 0.0}
                 }
 
-                keep = {
-                    from: {all: Forward {duration: 3.0}}
+                initial = {
+                    from: {all: Snap}
                     apply: {offset: 0.0}
                 }
 
@@ -123,7 +123,7 @@ impl LiveHook for VideoReel {
         self.reset_images_visibility();
 
         self.next_view = cx.new_next_frame();
-        self.animator_play(cx, id!(carrousel.keep));
+        self.animator_play(cx, id!(carrousel.initial));
     }
 }
 
@@ -209,19 +209,8 @@ impl VideoReel {
             self.animator_play(cx, id!(carrousel.display));
         } else if self.animator.animator_in_state(cx, id!(carrousel.display)) {
             // Begins the period of time where the carrousel is stopped
-            self.animator_play(cx, id!(carrousel.keep));
             let (previous_image, _) = self.get_active_images_containers();
             previous_image.set_visible(false);
-        } else if self.animator.animator_in_state(cx, id!(carrousel.keep)) {
-            // Ends the period of time where the carrousel is stopped,
-            // prepares the next image
-            self.setup_next_animation(VideoReelDirection::Forward);
-
-            let (_, mut current_image) = self.get_active_images_containers();
-            Self::set_vertical_position(&mut current_image, IMAGE_HEIGHT, cx);
-            current_image.set_visible(true);
-
-            self.animator_play(cx, id!(carrousel.restart));
         }
     }
 
