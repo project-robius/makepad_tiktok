@@ -26,7 +26,7 @@ live_design! {
             source: (VIDEO_PLACEHOLDER_1_IMG)
         }
         <ReelActions> {
-            abs_pos: vec2(350.0, 250.0)
+            margin: {left: 350.0, top: 250.0}
         }
     }
     
