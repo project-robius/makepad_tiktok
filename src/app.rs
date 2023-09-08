@@ -161,6 +161,7 @@ impl LiveHook for App {
         crate::home::home_screen::live_design(cx);
         crate::home::header::live_design(cx);
         crate::home::video_reel::live_design(cx);
+        crate::home::reel_actions::live_design(cx);
     }
 }
 

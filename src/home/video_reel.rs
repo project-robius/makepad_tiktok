@@ -8,12 +8,27 @@ live_design! {
     import makepad_widgets::base::*;
     import makepad_widgets::theme_desktop_dark::*;
 
+    import crate::home::reel_actions::*;
+
     VIDEO_PLACEHOLDER_1_IMG = dep("crate://self/resources/video_preview_1.png")
     VIDEO_PLACEHOLDER_2_IMG = dep("crate://self/resources/video_preview_2.png")
     VIDEO_PLACEHOLDER_3_IMG = dep("crate://self/resources/video_preview_3.png")
 
     IMAGE_WIDTH: 400.0
     IMAGE_HEIGHT: 800.0
+
+    VideoReelItem = <View> {
+        width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
+        flow: Overlay
+        image = <Image> {
+            width: Fill
+            height: Fill
+            source: (VIDEO_PLACEHOLDER_1_IMG)
+        }
+        <ReelActions> {
+            abs_pos: vec2(350.0, 250.0)
+        }
+    }
     
     VideoReel = {{VideoReel}} {
         width: Fill
@@ -21,29 +36,20 @@ live_design! {
         flow: Overlay,
         align: {x: 0.0, y: 0.0}
 
-        image1 = <View> {
-            width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
-            <Image> {
-                width: Fill
-                height: Fill
+        item1 = <VideoReelItem> {
+            image = {
                 source: (VIDEO_PLACEHOLDER_1_IMG)
             }
         }
 
-        image2 = <View> {
-            width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
-            <Image> {
-                width: Fill
-                height: Fill
+        item2 = <VideoReelItem> {
+            image = {
                 source: (VIDEO_PLACEHOLDER_2_IMG)
             }
         }
 
-        image3 = <View> {
-            width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
-            <Image> {
-                width: Fill
-                height: Fill
+        item3 = <VideoReelItem> {
+            image = {
                 source: (VIDEO_PLACEHOLDER_3_IMG)
             }
         }
@@ -124,9 +130,9 @@ impl LiveHook for VideoReel {
 
     fn after_new_from_doc(&mut self, cx: &mut Cx) {
         self.image_containers = vec![
-            self.view(id!(image1)),
-            self.view(id!(image2)),
-            self.view(id!(image3)),
+            self.view(id!(item1)),
+            self.view(id!(item2)),
+            self.view(id!(item3)),
         ];
 
         self.reset_images_visibility();
@@ -147,8 +153,8 @@ impl Widget for VideoReel {
         self.handle_mouse_event(cx, event);
     }
 
-    fn walk(&self) -> Walk {
-        self.view.walk()
+    fn walk(&mut self, cx: &mut Cx) -> Walk {
+        self.view.walk(cx)
     }
 
     fn redraw(&mut self, cx: &mut Cx) {
@@ -294,7 +300,6 @@ impl VideoReel {
         self.previous_image_index = self.current_image_index;
         match direction {
             VideoReelDirection::Forward => {
-                println!("setup_next_animation forward");
                 self.current_image_index = (self.current_image_index + 1).rem_euclid(self.image_containers.len() as i32);
             },
             VideoReelDirection::Backward => {
