@@ -32,10 +32,9 @@ live_design! {
                 }
             }
         }
-        <Label> {
+        caption = <Label> {
             width: Fit,
             height: Fit,
-            text: "100",
             draw_text: {
                 color: (SELECTED_ITEM_COLOR);
                 text_style: <REGULAR_TEXT> { font_size: 8 }
@@ -56,33 +55,38 @@ live_design! {
                     svg_file: dep("crate://self/resources/heart_icon.svg")
                 }
             }
-        }
-        <ReelActionsButton> {
-            button = {
-                draw_icon: {
-                    svg_file: dep("crate://self/resources/heart_icon.svg")
-                }
+            caption = {
+                text: "1234"
             }
         }
         <ReelActionsButton> {
             button = {
                 draw_icon: {
-                    svg_file: dep("crate://self/resources/heart_icon.svg")
+                    svg_file: dep("crate://self/resources/chat_icon.svg")
                 }
+            }
+            caption = {
+                text: "2234"
             }
         }
         <ReelActionsButton> {
             button = {
                 draw_icon: {
-                    svg_file: dep("crate://self/resources/heart_icon.svg")
+                    svg_file: dep("crate://self/resources/star_icon.svg")
                 }
+            }
+            caption = {
+                text: "3234"
             }
         }
         <ReelActionsButton> {
             button = {
                 draw_icon: {
-                    svg_file: dep("crate://self/resources/heart_icon.svg")
+                    svg_file: dep("crate://self/resources/share_icon.svg")
                 }
+            }
+            caption = {
+                text: "4234"
             }
         }
     }
