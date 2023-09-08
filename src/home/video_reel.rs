@@ -17,6 +17,8 @@ live_design! {
     IMAGE_WIDTH: 400.0
     IMAGE_HEIGHT: 800.0
 
+    TEST2 = dep("crate://self/resources/test2.mp4")
+
     VideoReelItem = <View> {
         width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
         flow: Overlay
@@ -37,8 +39,11 @@ live_design! {
         align: {x: 0.0, y: 0.0}
 
         item1 = <VideoReelItem> {
-            image = {
-                source: (VIDEO_PLACEHOLDER_1_IMG)
+            image = <Video> {
+                source: (TEST2)
+                width: Fill,
+                height: Fill
+                is_looping: true
             }
         }
 
@@ -151,10 +156,12 @@ impl Widget for VideoReel {
     ) {
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
+
+        let _ = self.view.handle_widget_event(cx, event);
     }
 
-    fn walk(&mut self, cx: &mut Cx) -> Walk {
-        self.view.walk(cx)
+    fn walk(& self) -> Walk {
+        self.view.walk()
     }
 
     fn redraw(&mut self, cx: &mut Cx) {
