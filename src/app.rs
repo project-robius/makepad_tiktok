@@ -58,87 +58,91 @@ live_design! {
     }
 
     App = {{App}} {
-        ui: <DesktopWindow> {
+        ui: <Window> {
             window: {position: vec2(0, 0), inner_size: vec2(400, 800)},
             pass: {clear_color: #2A}
-            block_signal_event: true;
 
-            application_pages = <View> {
-                margin: 0
-                padding: 0
-
-                tab1_frame = <HomeScreen> {visible: true}
-                tab2_frame = <View> {visible: false}
-                tab3_frame = <View> {visible: false}
-                tab4_frame = <View> {visible: false}
-                tab5_frame = <View> {visible: false}
-            }
-
-            horizontal_divider = <View> {
+            body = {
+                flow: Down
                 width: Fill,
-                height: 5,
-                margin: 0.0,
-                padding: 0.0, spacing: 0.0
-                show_bg: true
-                draw_bg: {
-                    color: (COLOR_DIVIDER)
-                }
-            }
+                height: Fill
+                application_pages = <View> {
+                    margin: 0
+                    padding: 0
 
-            mobile_menu = <View> {
-                width: Fill
-                height: 80
-                padding: {top: 10, bottom: 40, left: 10, right: 10}
-                flow: Right
-                spacing: 6.0
-                show_bg: true
-                draw_bg: {
-                    color: (BACKGROUND_COLOR)
+                    tab1_frame = <HomeScreen> {visible: true}
+                    tab2_frame = <View> {visible: false}
+                    tab3_frame = <View> {visible: false}
+                    tab4_frame = <View> {visible: false}
+                    tab5_frame = <View> {visible: false}
                 }
 
-                mobile_modes = <View> {
-                    tab1 = <AppTab> {
-                        animator: {selected = {default: on}}
-                        label: "首页"
-                        width: Fill
-                        flow: Down
-                        spacing: 5.0
-                        align: {x: 0.5, y: 0.5}
-
-                        icon_walk: {width: 20, height: 20}
+                horizontal_divider = <View> {
+                    width: Fill,
+                    height: 5,
+                    margin: 0.0,
+                    padding: 0.0, spacing: 0.0
+                    show_bg: true
+                    draw_bg: {
+                        color: (COLOR_DIVIDER)
                     }
-                    tab2 = <AppTab> {
-                        label: "朋友",
-                        width: Fill
-                        flow: Down
-                        spacing: 5.0
-                        align: {x: 0.5, y: 0.5}
+                }
 
-                        icon_walk: {width: 20, height: 20}
+                mobile_menu = <View> {
+                    width: Fill
+                    height: 80
+                    padding: {top: 10, bottom: 40, left: 10, right: 10}
+                    flow: Right
+                    spacing: 6.0
+                    show_bg: true
+                    draw_bg: {
+                        color: (BACKGROUND_COLOR)
                     }
-                    tab3 = <CenterTab> {
-                        width: Fill
-                        flow: Down
-                        spacing: 5.0
-                        align: {x: 0.5, y: 0.5}
-                    }
-                    tab4 = <AppTab> {
-                        label: "消息",
-                        width: Fill
-                        flow: Down
-                        spacing: 5.0
-                        align: {x: 0.5, y: 0.5}
 
-                        icon_walk: {width: 20, height: 20}
-                    }
-                    tab5 = <AppTab> {
-                        label: "我",
-                        width: Fill
-                        flow: Down
-                        spacing: 5.0
-                        align: {x: 0.5, y: 0.5}
+                    mobile_modes = <View> {
+                        tab1 = <AppTab> {
+                            animator: {selected = {default: on}}
+                            label: "首页"
+                            width: Fill
+                            flow: Down
+                            spacing: 5.0
+                            align: {x: 0.5, y: 0.5}
 
-                        icon_walk: {width: 20, height: 20}
+                            icon_walk: {width: 20, height: 20}
+                        }
+                        tab2 = <AppTab> {
+                            label: "朋友",
+                            width: Fill
+                            flow: Down
+                            spacing: 5.0
+                            align: {x: 0.5, y: 0.5}
+
+                            icon_walk: {width: 20, height: 20}
+                        }
+                        tab3 = <CenterTab> {
+                            width: Fill
+                            flow: Down
+                            spacing: 5.0
+                            align: {x: 0.5, y: 0.5}
+                        }
+                        tab4 = <AppTab> {
+                            label: "消息",
+                            width: Fill
+                            flow: Down
+                            spacing: 5.0
+                            align: {x: 0.5, y: 0.5}
+
+                            icon_walk: {width: 20, height: 20}
+                        }
+                        tab5 = <AppTab> {
+                            label: "我",
+                            width: Fill
+                            flow: Down
+                            spacing: 5.0
+                            align: {x: 0.5, y: 0.5}
+
+                            icon_walk: {width: 20, height: 20}
+                        }
                     }
                 }
             }
