@@ -12,7 +12,9 @@ live_design! {
 
     SEAGULLS = dep("crate://self/resources/seagulls.mp4")
     TRAIN = dep("crate://self/resources/train.mp4")
-    DANCING = dep("crate://self/resources/dancing.mp4")
+    DANCE = dep("crate://self/resources/dance.mp4")
+    CAT = dep("crate://self/resources/cat.mp4")
+    CAT2 = dep("crate://self/resources/cat2.mp4")
 
     MEDIA_WIDTH: 400.0
     MEDIA_HEIGHT: 800.0
@@ -40,19 +42,32 @@ live_design! {
 
         item1 = <VideoReelItem> {
             video = {
-                source: (SEAGULLS)
+                source: (TRAIN)
+                autoplay: true
             }
         }
 
         item2 = <VideoReelItem> {
             video = {
-                source: (TRAIN)
+                source: (CAT)
             }
         }
 
         item3 = <VideoReelItem> {
             video = {
-                source: (DANCING)
+                source: (SEAGULLS)
+            }
+        }
+
+        item4 = <VideoReelItem> {
+            video = {
+                source: (DANCE)
+            }
+        }
+
+        item5 = <VideoReelItem> {
+            video = {
+                source: (CAT2)
             }
         }
 
@@ -130,9 +145,11 @@ impl LiveHook for VideoReel {
             self.view(id!(item1)),
             self.view(id!(item2)),
             self.view(id!(item3)),
-            ];
+            self.view(id!(item4)),
+            self.view(id!(item5)),
+            ]; 
 
-        self.reset_media_visibility(cx);
+        self.begin_media(cx);
 
         self.next_view = cx.new_next_frame();
         self.animator_play(cx, id!(carrousel.initial));
@@ -249,7 +266,6 @@ impl VideoReel {
             }
             Hit::FingerMove(fe) => {
                 let time_elapsed = fe.time - self.init_drag_time;
-                // dbg!(time_elapsed);
 
                 if time_elapsed > 0.15 {
                     let delta = self.last_abs - fe.abs.y;
@@ -262,6 +278,8 @@ impl VideoReel {
                         let mut upcoming_image =
                             self.media_containers[upcoming_image_index as usize].clone();
                         Self::set_vertical_position(&mut upcoming_image, -MEDIA_HEIGHT - delta, cx);
+                        
+                        upcoming_image.video(id!(video)).show_preview(cx);
                         upcoming_image.set_visible(true);
                     } else {
                         let upcoming_image_index = (self.current_media_index + 1)
@@ -286,7 +304,7 @@ impl VideoReel {
                     } else {
                         self.setup_next_animation(VideoReelDirection::Forward);
                     };
-                    self.reset_media_visibility(cx);
+                    self.update_media(cx);
 
                     self.offset_from_drag = -self.offset;
                     self.animator_play(cx, id!(carrousel.restart));
@@ -312,35 +330,34 @@ impl VideoReel {
         }
     }
 
-    fn reset_media_visibility(&mut self, cx: &mut Cx) {
-        makepad_error_log::log!(
-            "Resetting visibility, current_media_index: {}, previous_media_index: {}",
-            self.current_media_index,
-            self.previous_media_index
-        );
+    fn begin_media(&mut self, cx: &mut Cx) {
+        let (_, current_media) = self.get_active_containers();
+        current_media.set_visible(true);
+
+        let next_media_index = (self.current_media_index + 1)
+          .rem_euclid(self.media_containers.len() as i32);
+
+        let next_media = &self.media_containers[next_media_index as usize];
+        next_media.video(id!(video)).show_preview(cx);
+        
         for (i, media) in self.media_containers.iter().enumerate() {
-            // current media
+            if i != self.current_media_index as usize {
+                media.set_visible(false);
+            }
+        }
+    }
+
+    fn update_media(&mut self, cx: &mut Cx) {
+        for (i, media) in self.media_containers.iter().enumerate() {
             if i == self.current_media_index as usize {
                 media.set_visible(true);
                 media.video(id!(video)).begin_playback(cx);
-                makepad_error_log::log!("Beginning playback index: {}", i);
-            //previous media
             } else if i == self.previous_media_index as usize {
+                // keep previous visible so it doesn't dissapear on transition
                 media.set_visible(true);
                 media.video(id!(video)).end_playback(cx);
-                makepad_error_log::log!("Ending previous index: {}", i);
-            //next media
-            } else if i
-                == (self.current_media_index + 1).rem_euclid(self.media_containers.len() as i32) as usize
-            {
-                media.set_visible(true);
-                media.video(id!(video)).show_preview(cx);
-                makepad_error_log::log!("Previewing index: {}", i);
-            // everything else
             } else {
-                media.video(id!(video)).end_playback(cx);
                 media.set_visible(false);
-                makepad_error_log::log!("Ending playback index: {}", i); 
             }
         }
     }
