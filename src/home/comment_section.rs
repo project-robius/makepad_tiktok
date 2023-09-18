@@ -136,12 +136,18 @@ live_design! {
                 }
             }
             <FillerX> {}
-            <Label> {
-                text:"X"
+            close_button = <Button> {
+                text: "X"
                 draw_text:{
                     text_style: <REGULAR_TEXT>{font_size: 10.},
-                    color: #000
+                    color: #af
                 }
+                draw_bg: {
+                    fn pixel(self) -> vec4 {
+                        return #f8;
+                    }
+                }
+
             }
         }
         comments = <Comments> {}
@@ -286,9 +292,8 @@ impl Widget for Comments {
         event: &Event,
         dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
-        let _actions = self.list.handle_widget_event(cx, event);
-
-        for action in _actions {
+        let actions = self.list.handle_widget_event(cx, event);
+        for action in actions {
             dispatch_action(cx, action);
         }
     }
