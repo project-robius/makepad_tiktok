@@ -1,7 +1,7 @@
-use makepad_widgets::*;
 use makepad_widgets::widget::WidgetCache;
+use makepad_widgets::*;
 
-const IMAGE_HEIGHT: f64 = 800.0;
+const MEDIA_HEIGHT: f64 = 800.0;
 
 live_design! {
     import makepad_draw::shader::std::*;
@@ -10,26 +10,30 @@ live_design! {
 
     import crate::home::reel_actions::*;
 
-    VIDEO_PLACEHOLDER_1_IMG = dep("crate://self/resources/video_preview_1.png")
-    VIDEO_PLACEHOLDER_2_IMG = dep("crate://self/resources/video_preview_2.png")
-    VIDEO_PLACEHOLDER_3_IMG = dep("crate://self/resources/video_preview_3.png")
+    SEAGULLS = dep("crate://self/resources/seagulls.mp4")
+    TRAIN = dep("crate://self/resources/train.mp4")
+    DANCE = dep("crate://self/resources/dance.mp4")
+    CAT = dep("crate://self/resources/cat.mp4")
+    CAT2 = dep("crate://self/resources/cat2.mp4")
 
-    IMAGE_WIDTH: 400.0
-    IMAGE_HEIGHT: 800.0
+    MEDIA_WIDTH: 400.0
+    MEDIA_HEIGHT: 800.0
 
     VideoReelItem = <View> {
-        width: (IMAGE_WIDTH), height: (IMAGE_HEIGHT)
+        width: (MEDIA_WIDTH), height: (MEDIA_HEIGHT)
         flow: Overlay
-        image = <Image> {
-            width: Fill
+        video = <Video> {
+            source: (SEAGULLS)
+            width: Fill,
             height: Fill
-            source: (VIDEO_PLACEHOLDER_1_IMG)
+            is_looping: true
+            hold_to_pause: true
         }
         <ReelActions> {
             margin: {left: 350.0, top: 250.0}
         }
     }
-    
+
     VideoReel = {{VideoReel}} {
         width: Fill
         height: Fill
@@ -37,20 +41,33 @@ live_design! {
         align: {x: 0.0, y: 0.0}
 
         item1 = <VideoReelItem> {
-            image = {
-                source: (VIDEO_PLACEHOLDER_1_IMG)
+            video = {
+                source: (TRAIN)
+                autoplay: true
             }
         }
 
         item2 = <VideoReelItem> {
-            image = {
-                source: (VIDEO_PLACEHOLDER_2_IMG)
+            video = {
+                source: (CAT)
             }
         }
 
         item3 = <VideoReelItem> {
-            image = {
-                source: (VIDEO_PLACEHOLDER_3_IMG)
+            video = {
+                source: (SEAGULLS)
+            }
+        }
+
+        item4 = <VideoReelItem> {
+            video = {
+                source: (DANCE)
+            }
+        }
+
+        item5 = <VideoReelItem> {
+            video = {
+                source: (CAT2)
             }
         }
 
@@ -97,27 +114,22 @@ pub struct VideoReel {
 
     #[rust]
     next_view: NextFrame,
-
     #[rust]
     last_abs: f64,
 
     #[rust]
-    init_drag_time: f64,
-
-    #[rust]
-    image_containers: Vec<ViewRef>,
-
+    media_containers: Vec<ViewRef>,
     #[rust(0)]
-    current_image_index: i32,
-
+    current_media_index: i32,
     #[rust(0)]
-    previous_image_index: i32,
+    previous_media_index: i32,
 
     #[rust]
     dragging: bool,
-
     #[rust]
     offset_from_drag: f64,
+    #[rust]
+    init_drag_time: f64,
 
     #[rust(VideoReelDirection::Forward)]
     direction: VideoReelDirection,
@@ -129,13 +141,15 @@ impl LiveHook for VideoReel {
     }
 
     fn after_new_from_doc(&mut self, cx: &mut Cx) {
-        self.image_containers = vec![
+        self.media_containers = vec![
             self.view(id!(item1)),
             self.view(id!(item2)),
             self.view(id!(item3)),
-        ];
+            self.view(id!(item4)),
+            self.view(id!(item5)),
+            ]; 
 
-        self.reset_images_visibility();
+        self.begin_media(cx);
 
         self.next_view = cx.new_next_frame();
         self.animator_play(cx, id!(carrousel.initial));
@@ -151,6 +165,7 @@ impl Widget for VideoReel {
     ) {
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
+        self.view.handle_widget_event(cx, event);
     }
 
     fn walk(&mut self, cx: &mut Cx) -> Walk {
@@ -177,7 +192,7 @@ impl VideoReel {
         if let Some(_ne) = self.next_view.is_event(event) {
             if !self.dragging {
                 if self.animator_handle_event(cx, event).is_animating() {
-                    self.update_image_positions(cx);
+                    self.update_media_positions(cx);
                     self.redraw(cx);
                 } else {
                     self.fire_next_animation(cx);
@@ -191,30 +206,30 @@ impl VideoReel {
         }
     }
 
-    fn get_active_images_containers(&mut self) -> (ViewRef, ViewRef) {
-        let prev_index = self.previous_image_index as usize;
-        let curr_index = self.current_image_index as usize;
+    fn get_active_containers(&mut self) -> (ViewRef, ViewRef) {
+        let prev_index = self.previous_media_index as usize;
+        let curr_index = self.current_media_index as usize;
         (
-            self.image_containers[prev_index].clone(),
-            self.image_containers[curr_index].clone()
+            self.media_containers[prev_index].clone(),
+            self.media_containers[curr_index].clone(),
         )
     }
 
-    fn update_image_positions(&mut self, cx: &mut Cx) {
+    fn update_media_positions(&mut self, cx: &mut Cx) {
         if self.animator.animator_in_state(cx, id!(carrousel.display)) {
             let direction = self.direction;
-            let (mut prev_image, mut current_image) = self.get_active_images_containers();
+            let (mut prev_media, mut current_media) = self.get_active_containers();
 
             match direction {
                 VideoReelDirection::Forward => {
                     let offset = (self.offset - self.offset_from_drag).max(0.0);
-                    Self::set_vertical_position(&mut current_image, offset, cx);
-                    Self::set_vertical_position(&mut prev_image, offset - IMAGE_HEIGHT, cx);
-                },
+                    Self::set_vertical_position(&mut current_media, offset, cx);
+                    Self::set_vertical_position(&mut prev_media, offset - MEDIA_HEIGHT, cx);
+                }
                 VideoReelDirection::Backward => {
                     let offset = (self.offset + self.offset_from_drag).max(0.0);
-                    Self::set_vertical_position(&mut current_image, -offset, cx);
-                    Self::set_vertical_position(&mut prev_image, IMAGE_HEIGHT - offset, cx);
+                    Self::set_vertical_position(&mut current_media, -offset, cx);
+                    Self::set_vertical_position(&mut prev_media, MEDIA_HEIGHT - offset, cx);
                 }
             }
         }
@@ -226,19 +241,20 @@ impl VideoReel {
             self.animator_play(cx, id!(carrousel.display));
         } else if self.animator.animator_in_state(cx, id!(carrousel.display)) {
             // Begins the period of time where the carrousel is stopped
-            let (previous_image, _) = self.get_active_images_containers();
+            let (previous_image, _) = self.get_active_containers();
             previous_image.set_visible(false);
         }
     }
 
     // TODO rename
-    fn set_vertical_position(image_ref: &mut ViewRef, offset: f64, cx: &mut Cx) {
-        image_ref.apply_over(cx, live!{margin: {top: (offset) }});
+    fn set_vertical_position(media_ref: &mut ViewRef, offset: f64, cx: &mut Cx) {
+        media_ref.apply_over(cx, live! {margin: {top: (offset) }});
     }
 
     fn handle_mouse_event(&mut self, cx: &mut Cx, event: &Event) {
-        if self.animator.is_track_animating(cx, id!(carrousel)) &&
-            self.animator.animator_in_state(cx, id!(carrousel.display)) {
+        if self.animator.is_track_animating(cx, id!(carrousel))
+            && self.animator.animator_in_state(cx, id!(carrousel.display))
+        {
             return;
         }
 
@@ -247,73 +263,101 @@ impl VideoReel {
                 self.last_abs = fe.abs.y;
                 self.init_drag_time = fe.time;
                 self.offset_from_drag = 0.0;
-            },
+            }
             Hit::FingerMove(fe) => {
                 let time_elapsed = fe.time - self.init_drag_time;
-               // dbg!(time_elapsed);
 
                 if time_elapsed > 0.15 {
                     let delta = self.last_abs - fe.abs.y;
-                    let (_, mut current_image) = self.get_active_images_containers();
+                    let (_, mut current_media) = self.get_active_containers();
 
                     self.dragging = true;
                     if fe.abs.y > self.last_abs {
-                        let upcoming_image_index = (self.current_image_index - 1).rem_euclid(self.image_containers.len() as i32);
-                        let mut upcoming_image = self.image_containers[upcoming_image_index as usize].clone();
-                        Self::set_vertical_position(&mut upcoming_image, -IMAGE_HEIGHT - delta, cx);
+                        let upcoming_image_index = (self.current_media_index - 1)
+                            .rem_euclid(self.media_containers.len() as i32);
+                        let mut upcoming_image =
+                            self.media_containers[upcoming_image_index as usize].clone();
+                        Self::set_vertical_position(&mut upcoming_image, -MEDIA_HEIGHT - delta, cx);
+                        
+                        upcoming_image.video(id!(video)).show_preview(cx);
                         upcoming_image.set_visible(true);
                     } else {
-                        let upcoming_image_index = (self.current_image_index + 1).rem_euclid(self.image_containers.len() as i32);
-                        let mut upcoming_image = self.image_containers[upcoming_image_index as usize].clone();
-                        Self::set_vertical_position(&mut upcoming_image, IMAGE_HEIGHT - delta, cx);
+                        let upcoming_image_index = (self.current_media_index + 1)
+                            .rem_euclid(self.media_containers.len() as i32);
+                        let mut upcoming_image =
+                            self.media_containers[upcoming_image_index as usize].clone();
+                        Self::set_vertical_position(&mut upcoming_image, MEDIA_HEIGHT - delta, cx);
                         upcoming_image.set_visible(true);
                     }
 
                     self.offset = -delta;
-                    Self::set_vertical_position(&mut current_image, -delta, cx);
+                    Self::set_vertical_position(&mut current_media, -delta, cx);
                     self.redraw(cx);
                 }
-
-            },
+            }
             Hit::FingerUp(fe) => {
                 if fe.is_over && (fe.abs.y - self.last_abs).abs() > 10.0 {
-                    self.previous_image_index = self.current_image_index;
+                    self.previous_media_index = self.current_media_index;
 
                     if fe.abs.y > self.last_abs {
                         self.setup_next_animation(VideoReelDirection::Backward);
                     } else {
                         self.setup_next_animation(VideoReelDirection::Forward);
                     };
-                    self.reset_images_visibility();
+                    self.update_media(cx);
 
                     self.offset_from_drag = -self.offset;
                     self.animator_play(cx, id!(carrousel.restart));
                 }
                 self.dragging = false;
-            },
+            }
             _ => {}
         }
     }
 
     fn setup_next_animation(&mut self, direction: VideoReelDirection) {
         self.direction = direction;
-        self.previous_image_index = self.current_image_index;
+        self.previous_media_index = self.current_media_index;
         match direction {
             VideoReelDirection::Forward => {
-                self.current_image_index = (self.current_image_index + 1).rem_euclid(self.image_containers.len() as i32);
-            },
+                self.current_media_index =
+                    (self.current_media_index + 1).rem_euclid(self.media_containers.len() as i32);
+            }
             VideoReelDirection::Backward => {
-                self.current_image_index = (self.current_image_index - 1).rem_euclid(self.image_containers.len() as i32);
+                self.current_media_index =
+                    (self.current_media_index - 1).rem_euclid(self.media_containers.len() as i32);
             }
         }
     }
 
-    fn reset_images_visibility(&mut self) {
-        for (i, image) in self.image_containers.iter().enumerate() {
-            if i == self.current_image_index as usize || i == self.previous_image_index as usize {
-                image.set_visible(true);
+    fn begin_media(&mut self, cx: &mut Cx) {
+        let (_, current_media) = self.get_active_containers();
+        current_media.set_visible(true);
+
+        let next_media_index = (self.current_media_index + 1)
+          .rem_euclid(self.media_containers.len() as i32);
+
+        let next_media = &self.media_containers[next_media_index as usize];
+        next_media.video(id!(video)).show_preview(cx);
+        
+        for (i, media) in self.media_containers.iter().enumerate() {
+            if i != self.current_media_index as usize {
+                media.set_visible(false);
+            }
+        }
+    }
+
+    fn update_media(&mut self, cx: &mut Cx) {
+        for (i, media) in self.media_containers.iter().enumerate() {
+            if i == self.current_media_index as usize {
+                media.set_visible(true);
+                media.video(id!(video)).begin_playback(cx);
+            } else if i == self.previous_media_index as usize {
+                // keep previous visible so it doesn't dissapear on transition
+                media.set_visible(true);
+                media.video(id!(video)).end_playback(cx);
             } else {
-                image.set_visible(false);
+                media.set_visible(false);
             }
         }
     }
