@@ -7,7 +7,6 @@ live_design! {
     import makepad_widgets::theme_desktop_dark::*;
 
     import crate::shared::styles::*;
-    import crate::shared::helpers::*;
     import crate::shared::search_bar::SearchBar;
 
     IMG_SMILEY_FACE_BW = dep("crate://self/resources/smiley_face_bw.png")
@@ -106,7 +105,7 @@ live_design! {
         width: Fill, height: Fill
         flow: Right, spacing: 10., padding: 0.
 
-        list_view: <ListView> {
+        list: <PortalList> {
             auto_tail: false,
             grab_key_focus: true,
 
@@ -130,7 +129,7 @@ live_design! {
             margin: 10.
             <FillerX> {}
             <Label> {
-                text:"50复复复"
+                text:"50 条评论"
                 draw_text:{
                     text_style: <REGULAR_TEXT>{font_size: 10.},
                     color: #000
@@ -206,7 +205,7 @@ pub struct Comments {
     #[rust]
     comments: Vec<CommentEntry>,
     #[live]
-    list_view: ListView,
+    list: PortalList,
 }
 
 impl LiveHook for Comments {
@@ -217,64 +216,64 @@ impl LiveHook for Comments {
     fn after_new_from_doc(&mut self, _cx: &mut Cx) {
         self.comments = vec![
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
+                username: "温柔的晚安".to_string(),
+                text: "这可是世首美".to_string(),
+                timestamp: "11:23".to_string(),
                 likes: 58,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "相见不如怀念＞".to_string(),
+                text: "梨花你在干什么".to_string(),
+                timestamp: "11:23".to_string(),
+                likes: 50,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "无人触及".to_string(),
+                text: "我真的成了".to_string(),
+                timestamp: "11:22".to_string(),
+                likes: 48,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "无时无刻不想着你".to_string(),
+                text: "《张老三是哪个吊毛》".to_string(),
+                timestamp: "11:22".to_string(),
+                likes: 18,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "我我我我我".to_string(),
+                text: "为什么没有人说张老三开挂".to_string(),
+                timestamp: "10:10".to_string(),
+                likes: 33,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "完美情人".to_string(),
+                text: "我唐晓耐实名观看".to_string(),
+                timestamp: "10:10".to_string(),
+                likes: 32,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "我我我我我".to_string(),
+                text: "为什么没有人说张老三开挂".to_string(),
+                timestamp: "10:10".to_string(),
+                likes: 21,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "无人触及".to_string(),
+                text: "我真的成了".to_string(),
+                timestamp: "10:10".to_string(),
+                likes: 80,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "无人触及".to_string(),
+                text: "我真的成了".to_string(),
+                timestamp: "10:00".to_string(),
+                likes: 10,
             },
             CommentEntry {
-                username: "张伟".to_string(),
-                text: "张伟".to_string(),
-                timestamp: "12:10".to_string(),
-                likes: 58,
+                username: "完美情人".to_string(),
+                text: "我唐晓耐实名观看".to_string(),
+                timestamp: "8:23".to_string(),
+                likes: 78,
             },
         ];
     }
@@ -287,7 +286,7 @@ impl Widget for Comments {
         event: &Event,
         dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
-        let _actions = self.list_view.handle_widget_event(cx, event);
+        let _actions = self.list.handle_widget_event(cx, event);
 
         for action in _actions {
             dispatch_action(cx, action);
@@ -295,11 +294,11 @@ impl Widget for Comments {
     }
 
     fn redraw(&mut self, cx: &mut Cx) {
-        self.list_view.redraw(cx);
+        self.list.redraw(cx);
     }
 
     fn find_widgets(&mut self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        self.list_view.find_widgets(path, cached, results);
+        self.list.find_widgets(path, cached, results);
     }
 
     fn draw_walk_widget(&mut self, cx: &mut Cx2d, walk: Walk) -> WidgetDraw {
@@ -319,17 +318,17 @@ impl Comments {
         } else {
             0
         };
-        self.list_view.set_item_range(cx, 0, range_end);
+        self.list.set_item_range(cx, 0, range_end);
 
-        while self.list_view.draw_widget(cx).hook_widget().is_some() {
-            while let Some(item_id) = self.list_view.next_visible_item(cx) {
+        while self.list.draw_widget(cx).hook_widget().is_some() {
+            while let Some(item_id) = self.list.next_visible_item(cx) {
                 if item_id < comment_entries_count {
                     let item_index = item_id as usize;
                     let item_content = &self.comments[item_index];
 
                     let template = id!(comment);
 
-                    let item = self.list_view.item(cx, item_id, template[0]).unwrap();
+                    let item = self.list.item(cx, item_id, template[0]).unwrap();
 
                     item.label(id!(text.comment_text))
                         .set_text(&item_content.text);
