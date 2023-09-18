@@ -1,4 +1,5 @@
 use makepad_widgets::*;
+use crate::home::reel_actions::ReelButtonAction;
 
 live_design! {
     import makepad_widgets::base::*;
@@ -155,7 +156,8 @@ live_design! {
                 }
 
                 modal = <RoundedView> {
-                    margin: {top: 300}
+                    visible: false,
+                    margin: {top: 300},
                     width: Fill,
                     height: 500,
                     show_bg: true
@@ -198,6 +200,21 @@ impl AppMain for App {
         }
 
         let actions = self.ui.handle_widget_event(cx, event);
+        for action in &actions {
+            match action.action() {
+                ReelButtonAction::ShowComments => {
+                    self.ui.view(id!(modal)).set_visible(true);
+                    self.ui.redraw(cx);
+                }
+                ReelButtonAction::None => ()
+            }
+        }
+
+        let close_button = self.ui.button(id!(close_button));
+        if close_button.clicked(&actions) {
+            self.ui.view(id!(modal)).set_visible(false);
+            self.ui.redraw(cx);
+        }
 
         self.ui
             .radio_button_set(ids!(

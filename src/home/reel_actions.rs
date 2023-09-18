@@ -1,4 +1,5 @@
 use makepad_widgets::*;
+use makepad_widgets::widget::WidgetCache;
 
 live_design! {
     import makepad_draw::shader::std::*;
@@ -42,7 +43,7 @@ live_design! {
         }
     }
 
-    ReelActions = <View> {
+    ReelActions = {{ReelActions}} {
         height: 500
         width: Fit
         flow: Down
@@ -59,7 +60,7 @@ live_design! {
                 text: "1234"
             }
         }
-        <ReelActionsButton> {
+        chat = <ReelActionsButton> {
             button = {
                 draw_icon: {
                     svg_file: dep("crate://self/resources/chat_icon.svg")
@@ -89,5 +90,57 @@ live_design! {
                 text: "4234"
             }
         }
+    }
+}
+
+#[derive(Clone, WidgetAction, Debug)]
+pub enum ReelButtonAction {
+    None,
+    ShowComments,
+}
+
+#[derive(Live)]
+pub struct ReelActions {
+    #[deref]
+    view: View,
+}
+
+impl LiveHook for ReelActions {
+    fn before_live_design(cx: &mut Cx) {
+        register_widget!(cx, ReelActions);
+    }
+}
+
+impl Widget for ReelActions {
+    fn handle_widget_event_with(
+        &mut self,
+        cx: &mut Cx,
+        event: &Event,
+        dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
+    ) {
+        let actions = self.view.handle_widget_event(cx, event);
+
+        let chat_button = self.button(id!(chat.button));
+        if chat_button.clicked(&actions) {
+            let uid = self.widget_uid();
+            dispatch_action(cx, WidgetActionItem::new(ReelButtonAction::ShowComments.into(), uid));
+        };
+    }
+
+    fn walk(&mut self, cx: &mut Cx) -> Walk {
+        self.view.walk(cx)
+    }
+
+    fn redraw(&mut self, cx: &mut Cx) {
+        self.view.redraw(cx);
+    }
+
+    fn find_widgets(&mut self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
+        self.view.find_widgets(path, cached, results);
+    }
+
+    fn draw_walk_widget(&mut self, cx: &mut Cx2d, walk: Walk) -> WidgetDraw {
+        let _ = self.view.draw_walk_widget(cx, walk);
+        WidgetDraw::done()
     }
 }

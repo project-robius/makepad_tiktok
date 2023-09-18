@@ -25,7 +25,7 @@ live_design! {
             height: Fill
             source: (VIDEO_PLACEHOLDER_1_IMG)
         }
-        <ReelActions> {
+        actions = <ReelActions> {
             margin: {left: 350.0, top: 250.0}
         }
     }
@@ -147,8 +147,10 @@ impl Widget for VideoReel {
         &mut self,
         cx: &mut Cx,
         event: &Event,
-        _dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
+        dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
+        self.view.handle_widget_event_with(cx, event, dispatch_action);
+
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
     }
@@ -250,7 +252,6 @@ impl VideoReel {
             },
             Hit::FingerMove(fe) => {
                 let time_elapsed = fe.time - self.init_drag_time;
-               // dbg!(time_elapsed);
 
                 if time_elapsed > 0.15 {
                     let delta = self.last_abs - fe.abs.y;
