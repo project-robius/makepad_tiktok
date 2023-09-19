@@ -164,10 +164,8 @@ impl Widget for VideoReel {
         dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
         self.view.handle_widget_event_with(cx, event, dispatch_action);
-
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
-        self.view.handle_widget_event(cx, event);
     }
 
     fn walk(&mut self, cx: &mut Cx) -> Walk {
@@ -260,7 +258,7 @@ impl VideoReel {
             return;
         }
 
-        match event.hits(cx, self.view.area()) {
+        match event.hits_with_capture_overload(cx, self.view.area(), true) {
             Hit::FingerDown(fe) => {
                 self.last_abs = fe.abs.y;
                 self.init_drag_time = fe.time;

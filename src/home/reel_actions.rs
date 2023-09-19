@@ -118,13 +118,15 @@ impl Widget for ReelActions {
         event: &Event,
         dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
-        let actions = self.view.handle_widget_event(cx, event);
+        let chat_view = self.view(id!(chat));
 
-        let chat_button = self.button(id!(chat.button));
-        if chat_button.clicked(&actions) {
-            let uid = self.widget_uid();
-            dispatch_action(cx, WidgetActionItem::new(ReelButtonAction::ShowComments.into(), uid));
-        };
+        match event.hits(cx, chat_view.area()) {
+            Hit::FingerUp(fe) => if fe.was_tap() {
+                let uid = self.widget_uid();
+                dispatch_action(cx, WidgetActionItem::new(ReelButtonAction::ShowComments.into(), uid));
+            }
+            _ =>()
+        }
     }
 
     fn walk(&mut self, cx: &mut Cx) -> Walk {

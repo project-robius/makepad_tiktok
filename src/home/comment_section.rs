@@ -116,7 +116,7 @@ live_design! {
         }
     }
 
-    CommentSection = <KeyboardView> {
+    CommentSection = <View> {
         width: Fill, height: Fill
         flow: Down
         show_bg: true,
