@@ -25,12 +25,23 @@ live_design! {
         video = <Video> {
             source: (SEAGULLS)
             width: Fill,
-            height: Fill
+            height: Fill,
             is_looping: true
             hold_to_pause: true
         }
-        actions = <ReelActions> {
-            margin: {left: 350.0, top: 250.0}
+        <View> {
+            width: Fill, height: Fill
+            flow: Down
+            <View> {width: Fit, height: 300}
+            <View> {
+                width: Fill, height: Fill
+                flow: Right
+                <View> {width: 250, height: Fit}
+                actions = <ReelActions> {
+                    width: Fill, height: Fit
+                    padding: 20
+                }
+            }
         }
     }
 

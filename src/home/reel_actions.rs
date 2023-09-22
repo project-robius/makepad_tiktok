@@ -44,7 +44,7 @@ live_design! {
     }
 
     ReelActions = {{ReelActions}} {
-        height: 500
+        height: Fit
         width: Fit
         flow: Down
         spacing: 30.0
