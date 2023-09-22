@@ -1,5 +1,6 @@
 use makepad_widgets::*;
 use crate::home::reel_actions::ReelButtonAction;
+use crate::home::video_reel::VideoReelWidgetRefExt;
 
 live_design! {
     import makepad_widgets::base::*;
@@ -200,6 +201,7 @@ impl AppMain for App {
         }
 
         let actions = self.ui.handle_widget_event(cx, event);
+
         for action in &actions {
             match action.action() {
                 ReelButtonAction::ShowComments => {
@@ -213,6 +215,7 @@ impl AppMain for App {
         let close_button = self.ui.button(id!(close_button));
         if close_button.clicked(&actions) {
             self.ui.view(id!(modal)).set_visible(false);
+            self.ui.video_reel(id!(video_reel)).comments_dismissed();
             self.ui.redraw(cx);
         }
 

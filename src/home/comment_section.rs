@@ -106,8 +106,8 @@ live_design! {
         flow: Right, spacing: 10., padding: 0.
 
         list: <PortalList> {
-            auto_tail: false,
-            grab_key_focus: true,
+            auto_tail: false
+            grab_key_focus: true
 
             width: Fill, height: Fill
             flow: Down, spacing: 0.

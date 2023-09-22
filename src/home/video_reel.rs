@@ -1,5 +1,6 @@
 use makepad_widgets::widget::WidgetCache;
 use makepad_widgets::*;
+use crate::home::reel_actions::ReelButtonAction;
 
 const MEDIA_HEIGHT: f64 = 800.0;
 
@@ -142,6 +143,9 @@ pub struct VideoReel {
     #[rust]
     init_drag_time: f64,
 
+    #[rust(true)]
+    change_video_enabled: bool,
+
     #[rust(VideoReelDirection::Forward)]
     direction: VideoReelDirection,
 }
@@ -174,7 +178,19 @@ impl Widget for VideoReel {
         event: &Event,
         dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
     ) {
-        self.view.handle_widget_event_with(cx, event, dispatch_action);
+        let actions = self.view.handle_widget_event(cx, event);
+
+        for action in &actions {
+            match action.action() {
+                ReelButtonAction::ShowComments => {
+                    self.change_video_enabled = false;
+                }
+                ReelButtonAction::None => ()
+            }
+            dispatch_action(cx, action.clone());
+        }
+
+
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
     }
@@ -277,8 +293,7 @@ impl VideoReel {
             }
             Hit::FingerMove(fe) => {
                 let time_elapsed = fe.time - self.init_drag_time;
-
-                if time_elapsed > 0.15 {
+                if self.change_video_enabled && time_elapsed > 0.15 {
                     let delta = self.last_abs - fe.abs.y;
                     let (_, mut current_media) = self.get_active_containers();
 
@@ -307,7 +322,7 @@ impl VideoReel {
                 }
             }
             Hit::FingerUp(fe) => {
-                if fe.is_over && (fe.abs.y - self.last_abs).abs() > 10.0 {
+                if self.change_video_enabled && fe.is_over && (fe.abs.y - self.last_abs).abs() > 10.0 {
                     self.previous_media_index = self.current_media_index;
 
                     if fe.abs.y > self.last_abs {
@@ -370,6 +385,17 @@ impl VideoReel {
             } else {
                 media.set_visible(false);
             }
+        }
+    }
+}
+
+#[derive(Clone, WidgetRef)]
+pub struct VideoReelRef(WidgetRef);
+
+impl VideoReelRef {
+    pub fn comments_dismissed(&self) {
+        if let Some(mut inner) = self.borrow_mut() {
+            inner.change_video_enabled = true;
         }
     }
 }

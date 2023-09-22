@@ -14,7 +14,7 @@ live_design! {
         height: Fill,
         flow: Overlay
 
-        <VideoReel> {}
+        video_reel = <VideoReel> {}
         <Header> {}
     }
 }
