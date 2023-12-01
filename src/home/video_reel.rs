@@ -1,6 +1,6 @@
+use crate::home::reel_actions::ReelButtonAction;
 use makepad_widgets::widget::WidgetCache;
 use makepad_widgets::*;
-use crate::home::reel_actions::ReelButtonAction;
 
 const MEDIA_HEIGHT: f64 = 800.0;
 
@@ -54,32 +54,32 @@ live_design! {
 
         item1 = <VideoReelItem> {
             video = {
-                source: (TRAIN)
+                source: Dependency { path: (TRAIN) }
                 autoplay: true
             }
         }
 
         item2 = <VideoReelItem> {
             video = {
-                source: (CAT)
+                source: Dependency { path: (CAT) }
             }
         }
 
         item3 = <VideoReelItem> {
             video = {
-                source: (SEAGULLS)
+                source: Dependency { path: (SEAGULLS) }
             }
         }
 
         item4 = <VideoReelItem> {
             video = {
-                source: (DANCE)
+                source: Dependency { path: (DANCE) }
             }
         }
 
         item5 = <VideoReelItem> {
             video = {
-                source: (CAT2)
+                source: Dependency { path: (CAT2) }
             }
         }
 
@@ -162,7 +162,7 @@ impl LiveHook for VideoReel {
             self.view(id!(item3)),
             self.view(id!(item4)),
             self.view(id!(item5)),
-            ]; 
+        ];
 
         self.begin_media(cx);
 
@@ -189,7 +189,6 @@ impl Widget for VideoReel {
             }
             dispatch_action(cx, action.clone());
         }
-
 
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
@@ -304,8 +303,7 @@ impl VideoReel {
                         let mut upcoming_image =
                             self.media_containers[upcoming_image_index as usize].clone();
                         Self::set_vertical_position(&mut upcoming_image, -MEDIA_HEIGHT - delta, cx);
-                        
-                        upcoming_image.video(id!(video)).show_preview(cx);
+
                         upcoming_image.set_visible(true);
                     } else {
                         let upcoming_image_index = (self.current_media_index + 1)
@@ -322,7 +320,10 @@ impl VideoReel {
                 }
             }
             Hit::FingerUp(fe) => {
-                if self.change_video_enabled && fe.is_over && (fe.abs.y - self.last_abs).abs() > 10.0 {
+                if self.change_video_enabled
+                    && fe.is_over
+                    && (fe.abs.y - self.last_abs).abs() > 10.0
+                {
                     self.previous_media_index = self.current_media_index;
 
                     if fe.abs.y > self.last_abs {
@@ -360,12 +361,11 @@ impl VideoReel {
         let (_, current_media) = self.get_active_containers();
         current_media.set_visible(true);
 
-        let next_media_index = (self.current_media_index + 1)
-          .rem_euclid(self.media_containers.len() as i32);
+        let next_media_index =
+            (self.current_media_index + 1).rem_euclid(self.media_containers.len() as i32);
 
         let next_media = &self.media_containers[next_media_index as usize];
-        next_media.video(id!(video)).show_preview(cx);
-        
+
         for (i, media) in self.media_containers.iter().enumerate() {
             if i != self.current_media_index as usize {
                 media.set_visible(false);
