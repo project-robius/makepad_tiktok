@@ -164,7 +164,7 @@ impl LiveHook for VideoReel {
             self.view(id!(item5)),
         ];
 
-        self.begin_media(cx);
+        self.begin_media();
 
         self.next_view = cx.new_next_frame();
         self.animator_play(cx, id!(carrousel.initial));
@@ -357,14 +357,9 @@ impl VideoReel {
         }
     }
 
-    fn begin_media(&mut self, cx: &mut Cx) {
+    fn begin_media(&mut self) {
         let (_, current_media) = self.get_active_containers();
         current_media.set_visible(true);
-
-        let next_media_index =
-            (self.current_media_index + 1).rem_euclid(self.media_containers.len() as i32);
-
-        let next_media = &self.media_containers[next_media_index as usize];
 
         for (i, media) in self.media_containers.iter().enumerate() {
             if i != self.current_media_index as usize {
