@@ -376,7 +376,7 @@ impl VideoReel {
             } else if i == self.previous_media_index as usize {
                 // keep previous visible so it doesn't dissapear on transition
                 media.set_visible(true);
-                media.video(id!(video)).end_playback(cx);
+                media.video(id!(video)).stop_and_cleanup_resources(cx);
             } else {
                 media.set_visible(false);
             }
