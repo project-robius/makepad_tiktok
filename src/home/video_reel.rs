@@ -113,7 +113,7 @@ enum VideoReelDirection {
     Backward,
 }
 
-#[derive(Live)]
+#[derive(Live, Widget)]
 pub struct VideoReel {
     #[deref]
     view: View,
@@ -151,10 +151,6 @@ pub struct VideoReel {
 }
 
 impl LiveHook for VideoReel {
-    fn before_live_design(cx: &mut Cx) {
-        register_widget!(cx, VideoReel);
-    }
-
     fn after_new_from_doc(&mut self, cx: &mut Cx) {
         self.media_containers = vec![
             self.view(id!(item1)),
@@ -172,44 +168,36 @@ impl LiveHook for VideoReel {
 }
 
 impl Widget for VideoReel {
-    fn handle_widget_event_with(
+    fn handle_event(
         &mut self,
         cx: &mut Cx,
         event: &Event,
-        dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
+        scope: &mut Scope,
     ) {
-        let actions = self.view.handle_widget_event(cx, event);
-
-        for action in &actions {
-            match action.action() {
-                ReelButtonAction::ShowComments => {
-                    self.change_video_enabled = false;
-                }
-                ReelButtonAction::None => ()
-            }
-            dispatch_action(cx, action.clone());
-        }
+        self.view.handle_event(cx, event, scope);
+        self.match_event(cx, event);
 
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
     }
 
-    fn walk(&mut self, cx: &mut Cx) -> Walk {
-        self.view.walk(cx)
-    }
-
-    fn redraw(&mut self, cx: &mut Cx) {
-        self.view.redraw(cx);
-    }
-
-    fn find_widgets(&mut self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        self.view.find_widgets(path, cached, results);
-    }
-
-    fn draw_walk_widget(&mut self, cx: &mut Cx2d, walk: Walk) -> WidgetDraw {
-        let _ = self.view.draw_walk_widget(cx, walk);
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        let _ = self.view.draw_walk(cx, scope, walk);
         self.next_view = cx.new_next_frame();
-        WidgetDraw::done()
+        DrawStep::done()
+    }
+}
+
+impl MatchEvent for VideoReel {
+    fn handle_actions(&mut self, _cx: &mut Cx, actions: &Actions) {
+        for action in actions {
+            match action.cast() {
+                ReelButtonAction::ShowComments => {
+                    self.change_video_enabled = false;
+                }
+                ReelButtonAction::None => ()
+            }
+        }
     }
 }
 
@@ -383,9 +371,6 @@ impl VideoReel {
         }
     }
 }
-
-#[derive(Clone, WidgetRef)]
-pub struct VideoReelRef(WidgetRef);
 
 impl VideoReelRef {
     pub fn comments_dismissed(&self) {

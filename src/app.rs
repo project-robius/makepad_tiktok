@@ -175,14 +175,14 @@ live_design! {
 
 app_main!(App);
 
-#[derive(Live)]
+#[derive(Live, LiveHook)]
 pub struct App {
     #[live]
     ui: WidgetRef,
 }
 
-impl LiveHook for App {
-    fn before_live_design(cx: &mut Cx) {
+impl LiveRegister for App {
+    fn live_register(cx: &mut Cx) {
         makepad_widgets::live_design(cx);
         crate::shared::styles::live_design(cx);
         crate::shared::search_bar::live_design(cx);
@@ -196,19 +196,20 @@ impl LiveHook for App {
 
 impl AppMain for App {
     fn handle_event(&mut self, cx: &mut Cx, event: &Event) {
-        if let Event::Draw(event) = event {
-            return self.ui.draw_widget_all(&mut Cx2d::new(cx, event));
-        }
+        self.match_event(cx, event);
+        self.ui.handle_event(cx, event, &mut Scope::empty());
+    }
+}
 
-        let actions = self.ui.handle_widget_event(cx, event);
-
-        for action in &actions {
-            match action.action() {
-                ReelButtonAction::ShowComments => {
+impl MatchEvent for App{
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions){
+        for action in actions {
+            match action.cast() {
+                Some(ReelButtonAction::ShowComments) => {
                     self.ui.view(id!(modal)).set_visible(true);
                     self.ui.redraw(cx);
-                }
-                ReelButtonAction::None => ()
+                },
+                _ => ()
             }
         }
 

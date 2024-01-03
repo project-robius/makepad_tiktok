@@ -1,4 +1,3 @@
-use makepad_widgets::widget::WidgetCache;
 use makepad_widgets::*;
 
 live_design! {
@@ -105,7 +104,7 @@ live_design! {
         width: Fill, height: Fill
         flow: Right, spacing: 10., padding: 0.
 
-        list: <PortalList> {
+        list = <PortalList> {
             auto_tail: false
             grab_key_focus: true
 
@@ -201,24 +200,16 @@ live_design! {
     }
 }
 
-#[derive(Live)]
+#[derive(Live, Widget)]
 pub struct Comments {
-    #[walk]
-    walk: Walk,
-    #[layout]
-    layout: Layout,
+    #[deref]
+    view: View,
 
     #[rust]
-    comments: Vec<CommentEntry>,
-    #[live]
-    list: PortalList,
+    comments: Vec<CommentEntry>
 }
 
 impl LiveHook for Comments {
-    fn before_live_design(cx: &mut Cx) {
-        register_widget!(cx, Comments);
-    }
-
     fn after_new_from_doc(&mut self, _cx: &mut Cx) {
         self.comments = vec![
             CommentEntry {
@@ -286,70 +277,42 @@ impl LiveHook for Comments {
 }
 
 impl Widget for Comments {
-    fn handle_widget_event_with(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
-    ) {
-        let actions = self.list.handle_widget_event(cx, event);
-        for action in actions {
-            dispatch_action(cx, action);
-        }
-    }
-
-    fn redraw(&mut self, cx: &mut Cx) {
-        self.list.redraw(cx);
-    }
-
-    fn find_widgets(&mut self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        self.list.find_widgets(path, cached, results);
-    }
-
-    fn draw_walk_widget(&mut self, cx: &mut Cx2d, walk: Walk) -> WidgetDraw {
-        self.draw_walk(cx, walk);
-        WidgetDraw::done()
-    }
-}
-
-impl Comments {
-    pub fn draw_walk(&mut self, cx: &mut Cx2d, walk: Walk) {
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let comment_entries_count = self.comments.len() as u64;
-
-        cx.begin_turtle(walk, self.layout);
 
         let range_end = if comment_entries_count > 0 {
             comment_entries_count - 1
         } else {
             0
         };
-        self.list.set_item_range(cx, 0, range_end);
+        
+        while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
+            if let Some(mut list) = item.as_portal_list().borrow_mut() {
+                list.set_item_range(cx, 0, range_end);
+                while let Some(item_id) = list.next_visible_item(cx) {
+                    if item_id < comment_entries_count {
+                        let item_index = item_id as usize;
+                        let item_content = &self.comments[item_index];
 
-        while self.list.draw_widget(cx).hook_widget().is_some() {
-            while let Some(item_id) = self.list.next_visible_item(cx) {
-                if item_id < comment_entries_count {
-                    let item_index = item_id as usize;
-                    let item_content = &self.comments[item_index];
+                        let template = id!(comment);
 
-                    let template = id!(comment);
+                        let item = list.item(cx, item_id, template[0]).unwrap();
 
-                    let item = self.list.item(cx, item_id, template[0]).unwrap();
+                        item.label(id!(text.comment_text))
+                            .set_text(&item_content.text);
+                        item.label(id!(text.username))
+                            .set_text(&item_content.username);
+                        item.label(id!(text.metadata.timestamp))
+                            .set_text(&item_content.timestamp);
+                        item.label(id!(text.metadata.likes.label))
+                            .set_text(&item_content.likes.to_string());
 
-                    item.label(id!(text.comment_text))
-                        .set_text(&item_content.text);
-                    item.label(id!(text.username))
-                        .set_text(&item_content.username);
-                    item.label(id!(text.metadata.timestamp))
-                        .set_text(&item_content.timestamp);
-                    item.label(id!(text.metadata.likes.label))
-                        .set_text(&item_content.likes.to_string());
-
-                    item.draw_widget_all(cx);
+                        item.draw_all(cx, scope);
+                    }
                 }
             }
         }
-
-        cx.end_turtle();
+        DrawStep::done()
     }
 }
 

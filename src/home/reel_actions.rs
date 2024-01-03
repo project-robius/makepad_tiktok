@@ -93,56 +93,38 @@ live_design! {
     }
 }
 
-#[derive(Clone, WidgetAction, Debug)]
+#[derive(Clone, Debug, DefaultNone)]
 pub enum ReelButtonAction {
     None,
     ShowComments,
 }
 
-#[derive(Live)]
+#[derive(Live, LiveHook, Widget)]
 pub struct ReelActions {
     #[deref]
     view: View,
 }
 
-impl LiveHook for ReelActions {
-    fn before_live_design(cx: &mut Cx) {
-        register_widget!(cx, ReelActions);
-    }
-}
-
 impl Widget for ReelActions {
-    fn handle_widget_event_with(
+    fn handle_event(
         &mut self,
         cx: &mut Cx,
         event: &Event,
-        dispatch_action: &mut dyn FnMut(&mut Cx, WidgetActionItem),
+        scope: &mut Scope,
     ) {
         let chat_view = self.view(id!(chat));
 
         match event.hits(cx, chat_view.area()) {
             Hit::FingerUp(fe) => if fe.was_tap() {
                 let uid = self.widget_uid();
-                dispatch_action(cx, WidgetActionItem::new(ReelButtonAction::ShowComments.into(), uid));
+                cx.widget_action(uid, &scope.path, ReelButtonAction::ShowComments);
             }
             _ =>()
         }
     }
 
-    fn walk(&mut self, cx: &mut Cx) -> Walk {
-        self.view.walk(cx)
-    }
-
-    fn redraw(&mut self, cx: &mut Cx) {
-        self.view.redraw(cx);
-    }
-
-    fn find_widgets(&mut self, path: &[LiveId], cached: WidgetCache, results: &mut WidgetSet) {
-        self.view.find_widgets(path, cached, results);
-    }
-
-    fn draw_walk_widget(&mut self, cx: &mut Cx2d, walk: Walk) -> WidgetDraw {
-        let _ = self.view.draw_walk_widget(cx, walk);
-        WidgetDraw::done()
+    fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
+        let _ = self.view.draw_walk(cx, scope, walk);
+        DrawStep::done()
     }
 }
