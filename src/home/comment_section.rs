@@ -277,6 +277,11 @@ impl LiveHook for Comments {
 }
 
 impl Widget for Comments {
+
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
+        self.view.handle_event(cx, event, scope);
+    }
+
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
         let comment_entries_count = self.comments.len() as u64;
 
