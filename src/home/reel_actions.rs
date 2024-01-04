@@ -121,6 +121,7 @@ impl Widget for ReelActions {
             }
             _ =>()
         }
+        self.view.handle_event(cx, event, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {

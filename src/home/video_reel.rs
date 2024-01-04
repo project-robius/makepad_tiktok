@@ -191,11 +191,11 @@ impl Widget for VideoReel {
 impl MatchEvent for VideoReel {
     fn handle_actions(&mut self, _cx: &mut Cx, actions: &Actions) {
         for action in actions {
-            match action.cast() {
+            match action.downcast_ref().cast() {
                 ReelButtonAction::ShowComments => {
                     self.change_video_enabled = false;
                 }
-                ReelButtonAction::None => ()
+                _ => ()
             }
         }
     }
