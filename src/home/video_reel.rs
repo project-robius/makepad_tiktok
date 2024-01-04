@@ -168,12 +168,7 @@ impl LiveHook for VideoReel {
 }
 
 impl Widget for VideoReel {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
         self.match_event(cx, event);
 
@@ -195,7 +190,7 @@ impl MatchEvent for VideoReel {
                 ReelButtonAction::ShowComments => {
                     self.change_video_enabled = false;
                 }
-                _ => ()
+                _ => (),
             }
         }
     }

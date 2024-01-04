@@ -206,7 +206,7 @@ pub struct Comments {
     view: View,
 
     #[rust]
-    comments: Vec<CommentEntry>
+    comments: Vec<CommentEntry>,
 }
 
 impl LiveHook for Comments {
@@ -277,7 +277,6 @@ impl LiveHook for Comments {
 }
 
 impl Widget for Comments {
-
     fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         self.view.handle_event(cx, event, scope);
     }
@@ -290,7 +289,7 @@ impl Widget for Comments {
         } else {
             0
         };
-        
+
         while let Some(item) = self.view.draw_walk(cx, scope, walk).step() {
             if let Some(mut list) = item.as_portal_list().borrow_mut() {
                 list.set_item_range(cx, 0, range_end);

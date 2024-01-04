@@ -1,3 +1,3 @@
 pub mod app;
-mod shared;
 mod home;
+mod shared;
