@@ -1,6 +1,6 @@
-use makepad_widgets::*;
 use crate::home::reel_actions::ReelButtonAction;
 use crate::home::video_reel::VideoReelWidgetRefExt;
+use makepad_widgets::*;
 
 live_design! {
     import makepad_widgets::base::*;
@@ -201,15 +201,15 @@ impl AppMain for App {
     }
 }
 
-impl MatchEvent for App{
-    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions){
+impl MatchEvent for App {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
         for action in actions {
             match action.downcast_ref().cast() {
                 ReelButtonAction::ShowComments => {
                     self.ui.view(id!(modal)).set_visible(true);
                     self.ui.redraw(cx);
-                },
-                _ => ()
+                }
+                _ => (),
             }
         }
 
