@@ -1,5 +1,5 @@
-use makepad_widgets::*;
 use makepad_widgets::widget::WidgetCache;
+use makepad_widgets::*;
 
 live_design! {
     import makepad_draw::shader::std::*;
@@ -106,21 +106,19 @@ pub struct ReelActions {
 }
 
 impl Widget for ReelActions {
-    fn handle_event(
-        &mut self,
-        cx: &mut Cx,
-        event: &Event,
-        scope: &mut Scope,
-    ) {
+    fn handle_event(&mut self, cx: &mut Cx, event: &Event, scope: &mut Scope) {
         let chat_view = self.view(id!(chat));
 
         match event.hits(cx, chat_view.area()) {
-            Hit::FingerUp(fe) => if fe.was_tap() {
-                let uid = self.widget_uid();
-                cx.widget_action(uid, &scope.path, ReelButtonAction::ShowComments);
+            Hit::FingerUp(fe) => {
+                if fe.was_tap() {
+                    let uid = self.widget_uid();
+                    cx.widget_action(uid, &scope.path, ReelButtonAction::ShowComments);
+                }
             }
-            _ =>()
+            _ => (),
         }
+        self.view.handle_event(cx, event, scope);
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
