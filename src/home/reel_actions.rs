@@ -8,31 +8,33 @@ live_design! {
 
     import crate::shared::styles::*;
 
+    ActionButton =  <Button> {
+        width: Fit, height: Fit
+        padding: 0.
+        icon_walk: {width: 26, height: Fit}
+        draw_bg: {
+            fn pixel(self) -> vec4 {
+                let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+                return sdf.result
+            }
+        }
+        draw_icon: {
+            color: (SELECTED_ITEM_COLOR);
+            brightness: 1;
+
+            fn get_color(self) -> vec4 {
+                return self.color;
+            }
+        }
+    }
+
     ReelActionsButton = <View> {
         width: Fit,
         height: Fit,
         flow: Down,
         spacing: 5.0,
         align: {x: 0.5, y: 1.0},
-        button = <Button> {
-            width: Fit, height: Fit
-            padding: 0.
-            icon_walk: {width: 26, height: Fit}
-            draw_bg: {
-                fn pixel(self) -> vec4 {
-                    let sdf = Sdf2d::viewport(self.pos * self.rect_size);
-                    return sdf.result
-                }
-            }
-            draw_icon: {
-                color: (SELECTED_ITEM_COLOR);
-                brightness: 1;
-
-                fn get_color(self) -> vec4 {
-                    return self.color;
-                }
-            }
-        }
+        button = <ActionButton> {}
         caption = <Label> {
             width: Fit,
             height: Fit,

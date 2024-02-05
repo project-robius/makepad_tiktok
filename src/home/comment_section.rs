@@ -282,7 +282,7 @@ impl Widget for Comments {
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
-        let comment_entries_count = self.comments.len() as u64;
+        let comment_entries_count = self.comments.len();
 
         let range_end = if comment_entries_count > 0 {
             comment_entries_count - 1
