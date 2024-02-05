@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+
 use crate::home::reel_actions::ReelButtonAction;
 use makepad_widgets::widget::WidgetCache;
 use makepad_widgets::*;
+
+use super::header::HeaderAction;
 
 const MEDIA_HEIGHT: f64 = 800.0;
 
@@ -17,6 +21,12 @@ live_design! {
     CAT = dep("crate://self/resources/cat.mp4")
     CAT2 = dep("crate://self/resources/cat2.mp4")
 
+    SEAGULLS_THUMBNAIL = dep("crate://self/resources/seagulls_thumbnail.png")
+    TRAIN_THUMBNAIL = dep("crate://self/resources/train_thumbnail.png")
+    DANCE_THUMBNAIL = dep("crate://self/resources/dance_thumbnail.png")
+    CAT_THUMBNAIL = dep("crate://self/resources/cat_thumbnail.png")
+    CAT2_THUMBNAIL = dep("crate://self/resources/cat2_thumbnail.png")
+
     MEDIA_WIDTH: 400.0
     MEDIA_HEIGHT: 800.0
 
@@ -24,20 +34,18 @@ live_design! {
         width: (MEDIA_WIDTH), height: (MEDIA_HEIGHT)
         flow: Overlay
         video = <Video> {
-            source: (SEAGULLS)
             width: Fill,
             height: Fill,
             is_looping: true
-            hold_to_pause: true
         }
         <View> {
             width: Fill, height: Fill
             flow: Down
-            <View> {width: Fit, height: 300}
+            y_fill = <View> {width: Fit, height: 340}
             <View> {
                 width: Fill, height: Fill
                 flow: Right
-                <View> {width: 250, height: Fit}
+                x_fill = <View> {width: 280, height: Fit}
                 actions = <ReelActions> {
                     width: Fill, height: Fit
                     padding: 20
@@ -52,34 +60,46 @@ live_design! {
         flow: Overlay,
         align: {x: 0.0, y: 0.0}
 
+        video_local_deps: [
+            dep("crate://self/resources/train.mp4"),
+            dep("crate://self/resources/cat.mp4"),
+            dep("crate://self/resources/seagulls.mp4"),
+            dep("crate://self/resources/dance.mp4"),
+            dep("crate://self/resources/cat2.mp4")
+        ]
+
         item1 = <VideoReelItem> {
             video = {
-                source: Dependency { path: (TRAIN) }
-                autoplay: true
+                show_thumbnail_before_playback: true
+                thumbnail_source: (TRAIN_THUMBNAIL)
             }
         }
 
         item2 = <VideoReelItem> {
             video = {
-                source: Dependency { path: (CAT) }
+                show_thumbnail_before_playback: true
+                thumbnail_source: (CAT_THUMBNAIL)
             }
         }
 
         item3 = <VideoReelItem> {
             video = {
-                source: Dependency { path: (SEAGULLS) }
+                show_thumbnail_before_playback: true
+                thumbnail_source: (SEAGULLS_THUMBNAIL)
             }
         }
 
         item4 = <VideoReelItem> {
             video = {
-                source: Dependency { path: (DANCE) }
+                show_thumbnail_before_playback: true
+                thumbnail_source: (DANCE_THUMBNAIL)
             }
         }
 
         item5 = <VideoReelItem> {
             video = {
-                source: Dependency { path: (CAT2) }
+                show_thumbnail_before_playback: true
+                thumbnail_source: (CAT2_THUMBNAIL)
             }
         }
 
@@ -113,6 +133,12 @@ enum VideoReelDirection {
     Backward,
 }
 
+#[derive(Clone, Debug, DefaultNone)]
+pub enum VideoReelAction {
+    None,
+    NetworkToggleReady,
+}
+
 #[derive(Live, Widget)]
 pub struct VideoReel {
     #[deref]
@@ -133,8 +159,15 @@ pub struct VideoReel {
     media_containers: Vec<ViewRef>,
     #[rust(0)]
     current_media_index: i32,
-    #[rust(0)]
+    #[rust(4)]
     previous_media_index: i32,
+    #[live]
+    video_local_deps: Vec<LiveDependency>,
+    #[rust]
+    video_network_urls: Vec<String>,
+
+    #[rust]
+    videos_awaiting_reset: HashMap<u64, (usize, VideoRef)>,
 
     #[rust]
     dragging: bool,
@@ -148,6 +181,12 @@ pub struct VideoReel {
 
     #[rust(VideoReelDirection::Forward)]
     direction: VideoReelDirection,
+
+    #[rust(false)]
+    use_network: bool,
+
+    #[rust]
+    should_inform_toggle_ready: bool,
 }
 
 impl LiveHook for VideoReel {
@@ -160,7 +199,20 @@ impl LiveHook for VideoReel {
             self.view(id!(item5)),
         ];
 
-        self.begin_media();
+        self.video_network_urls = vec![
+            "https://res.cloudinary.com/deidupyb6/video/upload/v1706705810/train_vopnk3.mp4"
+                .to_string(),
+            "https://res.cloudinary.com/deidupyb6/video/upload/v1706705810/cat_oolrj5.mp4"
+                .to_string(),
+            "https://res.cloudinary.com/deidupyb6/video/upload/v1706705810/seagulls_logrbt.mp4"
+                .to_string(),
+            "https://res.cloudinary.com/deidupyb6/video/upload/v1706705811/dance_ql14zh.mp4"
+                .to_string(),
+            "https://res.cloudinary.com/deidupyb6/video/upload/v1706708553/cat2_zy1jl6.mp4"
+                .to_string(),
+        ];
+
+        self.begin_media(cx);
 
         self.next_view = cx.new_next_frame();
         self.animator_play(cx, id!(carrousel.initial));
@@ -174,6 +226,14 @@ impl Widget for VideoReel {
 
         self.control_animation(cx, event);
         self.handle_mouse_event(cx, event);
+
+        if self.should_inform_toggle_ready {
+            if self.videos_awaiting_reset.len() == 0 {
+                let uid = self.widget_uid();
+                cx.widget_action(uid, &scope.path, VideoReelAction::NetworkToggleReady);
+                self.should_inform_toggle_ready = false;
+            }
+        }
     }
 
     fn draw_walk(&mut self, cx: &mut Cx2d, scope: &mut Scope, walk: Walk) -> DrawStep {
@@ -184,11 +244,50 @@ impl Widget for VideoReel {
 }
 
 impl MatchEvent for VideoReel {
-    fn handle_actions(&mut self, _cx: &mut Cx, actions: &Actions) {
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
         for action in actions {
             match action.downcast_ref().cast() {
                 ReelButtonAction::ShowComments => {
                     self.change_video_enabled = false;
+                }
+                _ => (),
+            }
+
+            match action.downcast_ref().cast() {
+                HeaderAction::ToggleNetwork => {
+                    self.use_network = !self.use_network;
+
+                    for (i, media) in self.media_containers.iter().enumerate() {
+                        let video = media.video(id!(video));
+                        if !video.is_unprepared() {
+                            video.stop_and_cleanup_resources(cx);
+                            self.videos_awaiting_reset
+                                .insert(video.widget_uid().0, (i, video));
+                        }
+                    }
+                    self.should_inform_toggle_ready = true;
+                }
+                _ => (),
+            }
+
+            match action.downcast_ref().cast() {
+                VideoAction::PlayerReset => {
+                    let widget_uid = action.as_widget_action().unwrap().widget_uid.0;
+                    match self.videos_awaiting_reset.get(&widget_uid) {
+                        Some((media_index, videoref)) => {
+                            let source = self.get_source_for_index(*media_index);
+                            videoref.set_source(source);
+
+                            if *media_index == self.current_media_index as usize {
+                                videoref.begin_playback(cx);
+                            } else {
+                                videoref.prepare_playback(cx);
+                            }
+
+                            self.videos_awaiting_reset.remove(&widget_uid);
+                        }
+                        _ => (),
+                    }
                 }
                 _ => (),
             }
@@ -255,7 +354,6 @@ impl VideoReel {
         }
     }
 
-    // TODO rename
     fn set_vertical_position(media_ref: &mut ViewRef, offset: f64, cx: &mut Cx) {
         media_ref.apply_over(cx, live! {margin: {top: (offset) }});
     }
@@ -340,9 +438,13 @@ impl VideoReel {
         }
     }
 
-    fn begin_media(&mut self) {
+    fn begin_media(&mut self, cx: &mut Cx) {
         let (_, current_media) = self.get_active_containers();
         current_media.set_visible(true);
+        let video = current_media.video(id!(video));
+        let source = self.get_source_for_index(0);
+        video.set_source(source);
+        video.begin_playback(cx);
 
         for (i, media) in self.media_containers.iter().enumerate() {
             if i != self.current_media_index as usize {
@@ -355,13 +457,36 @@ impl VideoReel {
         for (i, media) in self.media_containers.iter().enumerate() {
             if i == self.current_media_index as usize {
                 media.set_visible(true);
-                media.video(id!(video)).begin_playback(cx);
+                let video = media.video(id!(video));
+
+                if video.is_paused() {
+                    video.resume_playback(cx);
+                } else if video.is_prepared() {
+                    video.begin_playback(cx);
+                } else if !video.is_playing() && !video.is_prepared() && !video.is_preparing() {
+                    let source = self.get_source_for_index(i);
+
+                    video.set_source(source);
+                    video.begin_playback(cx);
+                }
             } else if i == self.previous_media_index as usize {
                 // keep previous visible so it doesn't dissapear on transition
                 media.set_visible(true);
-                media.video(id!(video)).stop_and_cleanup_resources(cx);
+                media.video(id!(video)).pause_playback(cx);
             } else {
                 media.set_visible(false);
+            }
+        }
+    }
+
+    fn get_source_for_index(&self, index: usize) -> VideoDataSource {
+        if self.use_network {
+            VideoDataSource::Network {
+                url: self.video_network_urls[index].clone(),
+            }
+        } else {
+            VideoDataSource::Dependency {
+                path: self.video_local_deps[index].clone(),
             }
         }
     }
